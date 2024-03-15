@@ -235,10 +235,10 @@ def group_and_decorate(recos_in):
                 # reco[field + "_EUR"] = to_euros(reco[field])
 
             # will be computed from flights
-            marketing_airlines: dict[str, int] = {}
-            operating_airlines: dict[str, int] = {}
-            cabins: dict[str, int] = {}
-            reco["flown_distance"] = 0
+            # marketing_airlines: dict[str, int] = {}
+            # operating_airlines: dict[str, int] = {}
+            # cabins: dict[str, int] = {}
+            # reco["flown_distance"] = 0
 
             # flight decoration
             for f in reco["flights"]:
