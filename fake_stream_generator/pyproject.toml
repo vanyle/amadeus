@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "fake-search-generator"
+version = "0.1.0"
+description = ""
+authors = ["Group F"]
+license = "Proprietary"
+readme = "README.md"
+packages = [{include = "fake-search-generator"}]
+
+# neobase = {git = "https://github.com/alexprengere/neobase.git"}
+[tool.poetry.dependencies]
+python = "^3.11"
+kafka-python = "^2.0.2"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

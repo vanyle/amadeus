@@ -1,0 +1,39 @@
+{
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "editor.suggest.showSnippets": false,
+  "css.lint.unknownAtRules": "ignore",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.unusedImports": "explicit"
+    },
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always"
+  },
+  "python.terminal.activateEnvironment": false,
+  "python.terminal.activateEnvInCurrentTerminal": false,
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features",
+    "editor.formatOnSave": true,
+  },
+  "workbench.colorTheme": "Monokai",
+  "workbench.colorCustomizations": {
+    "[Monokai]": {
+      "activityBar.background": "#336",
+      "titleBar.activeBackground": "#336",
+    }
+  },
+  "isort.check": true,
+  "isort.importStrategy": "fromEnvironment",
+  "python.analysis.typeCheckingMode": "basic",
+
+  "terminal.integrated.autoReplies": {
+    "Terminate batch job (Y/N)": "Y\r"
+  },
+  "terminal.integrated.shellIntegration.enabled": true,
+}
