@@ -194,80 +194,18 @@ def group_and_decorate(recos_in):
             search["stay_duration"] = (request_return_date - request_dep_date).days
             search["trip_type"] = "RT"  # Round trip
 
-        # decoding passengers string: "ADT=1,CH=2" means 1 Adult and 2 children
-        passengers = []
-        for pax_string in search["passengers_string"].rstrip().split(","):
-            pax_array = pax_string.split("=")
-            passengers.append(
-                {"passenger_type": pax_array[0], "passenger_nb": int(pax_array[1])}
-            )
-        search["passengers"] = passengers
-
-        # countries
-
-        # search["origin_country"] = get_neob().get(search["origin_city"], "country_code")
-
-        # search["destination_country"] = get_neob().get(
-        #     search["destination_city"], "country_code"
-        # )
-        # geo: D=Domestic I=International
-        # search["geo"] = (
-        #     "D" if search["origin_country"] == search["destination_country"] else "I"
-        # )
-
-        # OnD (means Origin and Destination. E.g. "PAR-NYC")
-        search["OnD"] = f"{search['origin_city']}-{search['destination_city']}"
-        # search["OnD_distance"] = round(
-        #     get_neob().distance(search["origin_city"], search["destination_city"])
-        # )
-
     except:
-        # logger.exception("Failed at building search from: %s", search)
         return None
 
-    # reco decoration
     for reco in search["recos"]:
-
         try:
-            # currency conversion
             for field in ["price", "taxes", "fees"]:
                 reco[field] = float(reco[field])
-                # reco[field + "_EUR"] = to_euros(reco[field])
-
-            # will be computed from flights
-            # marketing_airlines: dict[str, int] = {}
-            # operating_airlines: dict[str, int] = {}
-            # cabins: dict[str, int] = {}
-            # reco["flown_distance"] = 0
 
             # flight decoration
             for f in reco["flights"]:
-                # getting cities (a city can have several airports like PAR has CDG and ORY)
-                # f["dep_city"] = get_neob().get(f["dep_airport"], "city_code_list")[0]
-                # f["arr_city"] = get_neob().get(f["arr_airport"], "city_code_list")[0]
-
-                # f["distance"] = round(
-                #     get_neob().distance(f["dep_airport"], f["arr_airport"])
-                # )
-                # reco["flown_distance"] += f["distance"]
-                # marketing_airlines[f["marketing_airline"]] = (
-                #     marketing_airlines.get(f["marketing_airline"], 0) + f["distance"]
-                # )
                 if f["operating_airline"] == "":
                     f["operating_airline"] = f["marketing_airline"]
-                # operating_airlines[f["operating_airline"]] = (
-                #     operating_airlines.get(f["operating_airline"], 0) + f["distance"]
-                # )
-                # cabins[f["cabin"]] = cabins.get(f["cabin"], 0) + f["distance"]
-
-            # the main airline is the one that covers the longuest part of the trip
-            # reco["main_marketing_airline"] = max(
-            #     marketing_airlines, key=marketing_airlines.get  # type: ignore
-            # )
-            # reco["main_operating_airline"] = max(
-            #     operating_airlines, key=operating_airlines.get  # type: ignore
-            # )
-            # reco["main_cabin"] = max(cabins, key=cabins.get)  # type: ignore
 
         except:
             logger.exception("Failed at decorating reco: %s" % reco)
