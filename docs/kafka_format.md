@@ -2,6 +2,8 @@
 
 Below are the expected values of kafka messages when using the search `LRX-51980-1637149713-8763` from `travel_data_example.csv.gz`
 
+For readability, the json output has been formatted nicely, but in kafka, whitespaces should be removed (so that message size is smaller). If using Python, you can use `json.dumps(search_object).encode("utf-8")` and `json.loads(kafka_message.value().decode("utf-8"))`
+
 ## Output of fake stream generator/Input of filtering
 
 Consumed event from topic `aggregated_recos`: key = LRX-51980-1637149713-8763 value =
