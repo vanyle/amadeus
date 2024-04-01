@@ -2559,7 +2559,7 @@ Consumed event from topic `aggregated_recos`: key = LRX-51980-1637149713-8763 va
 
 ## Output of filtering/Input of enrichment
 
-Same as format as previous, just drop the filtered searches
+Same format as previous, just drop the filtered searches
 
 Topic name is `filtered_recos`
 
