@@ -7,17 +7,16 @@ Tool to enrich Travel recommendations.
 
 """
 
-import logging
 import argparse
 import datetime
-import sys
 import json
-import time
+import logging
 import os
-import neobase
+import time
 from collections import Counter
-from configparser import ConfigParser
-from confluent_kafka import Producer, Consumer, OFFSET_BEGINNING
+
+import neobase
+from confluent_kafka import OFFSET_BEGINNING, Consumer, Producer
 
 # Log init
 logging.basicConfig(
@@ -31,7 +30,8 @@ logger.setLevel(logging.DEBUG)
 # geography module
 neob = None
 
-def get_neob():
+
+def get_neob() -> neobase.NeoBase:
     """
     Inits geography module if necessary
     :return: neob: neobase object to be used for geo conversions
@@ -42,6 +42,7 @@ def get_neob():
         logger.info("Init geography module neobase")
         neob = neobase.NeoBase()
     return neob
+
 
 # Currency rates
 def load_rates(rates_file):
@@ -79,6 +80,7 @@ def load_rates(rates_file):
     rates = rates[-1]
     logger.info("Currency rates loaded: %s" % rates)
     return rates
+
 
 # Encoders
 # Different ways to print the output. You can easily add one.
@@ -155,12 +157,19 @@ def enrich(search, rates):
 
         # OnD (means Origin and Destination. E.g. "PAR-NYC")
         # search["OnD"] = f"{search['origin_city']}-{search['destination_city']}" # Already done by aggregator
-        search["OnD_distance"] = round(
-            get_neob().distance(search["origin_city"], search["destination_city"])
+        distance = get_neob().distance(
+            search["origin_city"], search["destination_city"]
         )
+        if type(distance) == float:
+            search["OnD_distance"] = round(distance)
+        else:
+            logger.error(
+                f"Failed to get distance between {search['origin_city']} and {search['destination_city']}"
+            )
+            raise Exception("Failed to get distance")
 
     except:
-        logger.exception("Failed at buidlding search from: %s" % recos[0])
+        logger.exception("Failed at building search from: %s" % search["recos"][0])
         # filter out recos when we fail at decorating them
         return None
 
@@ -180,24 +189,32 @@ def enrich(search, rates):
             reco["flown_distance"] = 0
 
             # flight decoration
-            for f in reco["flights"]:
+            for flight in reco["flights"]:
                 # getting cities (a city can have several airports like PAR has CDG and ORY)
-                f["dep_city"] = get_neob().get(f["dep_airport"], "city_code_list")[0]
-                f["arr_city"] = get_neob().get(f["arr_airport"], "city_code_list")[0]
+                flight["dep_city"] = get_neob().get(
+                    flight["dep_airport"], "city_code_list"
+                )[0]
+                flight["arr_city"] = get_neob().get(
+                    flight["arr_airport"], "city_code_list"
+                )[0]
 
-                f["distance"] = round(
-                    get_neob().distance(f["dep_airport"], f["arr_airport"])
+                flight["distance"] = round(
+                    get_neob().distance(flight["dep_airport"], flight["arr_airport"])
                 )
-                reco["flown_distance"] += f["distance"]
-                marketing_airlines[f["marketing_airline"]] = (
-                    marketing_airlines.get(f["marketing_airline"], 0) + f["distance"]
+                reco["flown_distance"] += flight["distance"]
+                marketing_airlines[flight["marketing_airline"]] = (
+                    marketing_airlines.get(flight["marketing_airline"], 0)
+                    + flight["distance"]
                 )
-                if f["operating_airline"] == "":
-                    f["operating_airline"] = f["marketing_airline"]
-                operating_airlines[f["operating_airline"]] = (
-                    operating_airlines.get(f["operating_airline"], 0) + f["distance"]
+                if flight["operating_airline"] == "":
+                    flight["operating_airline"] = flight["marketing_airline"]
+                operating_airlines[flight["operating_airline"]] = (
+                    operating_airlines.get(flight["operating_airline"], 0)
+                    + flight["distance"]
                 )
-                cabins[f["cabin"]] = cabins.get(f["cabin"], 0) + f["distance"]
+                cabins[flight["cabin"]] = (
+                    cabins.get(flight["cabin"], 0) + flight["distance"]
+                )
 
             # the main airline is the one that covers the longuest part of the trip
             reco["main_marketing_airline"] = max(
@@ -214,7 +231,6 @@ def enrich(search, rates):
             return None
 
     return search
-
 
 
 kafka_config = {
