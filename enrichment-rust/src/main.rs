@@ -1,52 +1,13 @@
+mod currency_exchange;
 mod neobase;
 
 use chrono::NaiveDate;
+use currency_exchange::Currency;
 use serde::{Deserialize, Serialize};
+use strum_macros::EnumString;
 use std::str::FromStr;
 
-extern crate strum;
-
-fn to_euros(amount: f64, currency: &Currency) -> f64 {
-    todo!()
-}
-
-#[macro_use]
 extern crate strum_macros;
-#[derive(EnumString, Serialize, Deserialize, Clone, Copy)]
-enum Currency {
-    USD,
-    JPY,
-    BGN,
-    CZK,
-    DKK,
-    GBP,
-    HUF,
-    PLN,
-    RON,
-    SEK,
-    CHF,
-    ISK,
-    NOK,
-    HRK,
-    RUB,
-    TRY,
-    AUD,
-    BRL,
-    CAD,
-    CNY,
-    HKD,
-    IDR,
-    ILS,
-    INR,
-    KRW,
-    MXN,
-    MYR,
-    NZD,
-    PHP,
-    SGD,
-    THB,
-    ZAR,
-}
 
 #[derive(EnumString)]
 enum PassengerType {
@@ -147,11 +108,12 @@ impl EnrichedReco {
     fn enrich_from(
         reco: &Reco,
         neobase_locations: &neobase::Locations,
+        exchange_rates: &currency_exchange::ExchangeRates,
         currency: &Currency,
     ) -> EnrichedReco {
-        let price_eur = to_euros(reco.price as f64, currency);
-        let taxes_eur = to_euros(reco.taxes as f64, currency);
-        let fees_eur = to_euros(reco.fees as f64, currency);
+        let price_eur = exchange_rates.to_euros(reco.price as f64, currency);
+        let taxes_eur = exchange_rates.to_euros(reco.taxes as f64, currency);
+        let fees_eur = exchange_rates.to_euros(reco.fees as f64, currency);
 
         let flights: Vec<EnrichedFlight> = reco
             .flights
@@ -262,7 +224,7 @@ struct EnrichedSearch {
 }
 
 impl EnrichedSearch {
-    fn enrich_from(search: &Search, neobase_locations: &neobase::Locations) -> EnrichedSearch {
+    fn enrich_from(search: &Search, neobase_locations: &neobase::Locations, exchange_rates: &currency_exchange::ExchangeRates) -> EnrichedSearch {
         let parsed_request_dep_date =
             NaiveDate::parse_from_str(&search.request_dep_date, "%Y-%m-%d")
                 .expect("Failed to parse request_dep_date");
@@ -318,7 +280,7 @@ impl EnrichedSearch {
         let recos = search
             .recos
             .iter()
-            .map(|reco| EnrichedReco::enrich_from(reco, neobase_locations, &search.currency))
+            .map(|reco| EnrichedReco::enrich_from(reco, neobase_locations, &exchange_rates, &search.currency))
             .collect();
 
         return EnrichedSearch {
@@ -344,4 +306,9 @@ impl EnrichedSearch {
 
 fn main() {
     println!("Hello, world!");
+
+    // TODO : read json
+    // cast json to search, leaving unused fields untouched
+    // enrich
+    // create json from enriched search, adding old untouched fields
 }
