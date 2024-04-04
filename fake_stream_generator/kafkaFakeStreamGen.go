@@ -21,6 +21,7 @@ import (
 const OUTPUT_TOPIC = "raw_recos"
 
 var KAFKA_URL = "localhost:1234"
+var MSG_PER_SEC = -1
 
 type Flight struct {
 	Dep_airport       string `json:"dep_airport"`
@@ -93,6 +94,10 @@ func SendSearch(conn *kafka.Conn, search *Search) {
 		conn.WriteMessages(
 			kafka.Message{Value: msg},
 		)
+	}
+
+	if MSG_PER_SEC > 0 {
+		time.Sleep(time.Duration((1000 * 1000 / MSG_PER_SEC)) * time.Microsecond)
 	}
 }
 
@@ -218,6 +223,15 @@ func main() {
 	gr, err := gzip.NewReader(f)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	ku, found := os.LookupEnv("KAFKA_URL")
+	if found {
+		KAFKA_URL = ku
+	}
+	mps, found := os.LookupEnv("MSG_PER_SEC")
+	if found {
+		MSG_PER_SEC, _ = strconv.Atoi(mps)
 	}
 
 	conn, err := kafka.DialLeader(context.Background(), "tcp", KAFKA_URL, OUTPUT_TOPIC, 0)
