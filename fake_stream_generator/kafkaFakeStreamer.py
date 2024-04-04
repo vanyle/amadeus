@@ -237,7 +237,7 @@ def make_search_more_realistic(search):
 
 def process_search(search):
     if producer is not None:
-        producer.send("searches", json.dumps(search).encode("utf-8"))
+        producer.send("raw_recos", json.dumps(search).encode("utf-8"))
 
     if MSG_PER_SEC > 0:
         time.sleep(1 / MSG_PER_SEC)
