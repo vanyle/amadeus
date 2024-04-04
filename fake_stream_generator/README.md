@@ -14,6 +14,9 @@ You can configure the script using the following environment variables:
 
 EC2 = 8 euros par mois. As soon as an instance is terminated, you no longer incur costs for it.
 
+The python script is there as a reference implementation. The go project should be used in production.
+Their behaviour should be similar.
+
 A search might look something like this:
 
 ```json
