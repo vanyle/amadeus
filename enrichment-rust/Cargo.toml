@@ -9,5 +9,6 @@ edition = "2021"
 chrono = "0.4.37"
 csv = "1.3.0"
 serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.115"
 strum = "0.26.2"
 strum_macros = "0.26.2"

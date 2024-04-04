@@ -68,7 +68,7 @@ fn get_geodata(filepath: &str) -> HashMap<String, Location> {
         .delimiter(b'^')
         .from_reader(csv_file);
 
-    let airports = HashMap::new();
+    let mut airports = HashMap::new();
 
     for result in csv_reader.deserialize() {
         let record: Record = result.expect("Error parsing record");
@@ -82,6 +82,7 @@ fn get_geodata(filepath: &str) -> HashMap<String, Location> {
                 .map(|s| s.to_string())
                 .collect(),
         };
+        airports.insert(record.iata_code, airport);
     }
 
     airports
@@ -97,21 +98,25 @@ impl Locations {
         }
     }
 
-    pub fn get_country_from_city(&self, dep_airport: &str) -> String {
-        let airport = self.locations.get(dep_airport).unwrap();
-        airport.country_code.clone()
+    pub fn get_country_from_city(&self, city: &str) -> String {
+        match self.locations.get(city) {
+            Some(loc) => loc.country_code.clone(),
+            None => "".to_string(),
+        }
     }
 
-    pub fn get_city_from_location(&self, dep_airport: &str) -> String {
-        let airport = self.locations.get(dep_airport).unwrap();
-        airport.city_code_list[0].clone()
+    pub fn get_city_from_location(&self, airport: &str) -> String {
+        match self.locations.get(airport) {
+            Some(loc) => loc.city_code_list[0].clone(),
+            None => "".to_string(),
+        }
     }
 
     pub fn get_round_distance_between_locations(
         &self,
         first_location: &str,
         second_location: &str,
-    ) -> Option<u32> {
+    ) -> Option<u64> {
         let first_airport = self.locations.get(first_location)?;
         let second_airport = self.locations.get(second_location)?;
 
@@ -125,7 +130,7 @@ impl Locations {
     }
 }
 
-fn haversine_distance(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> u32 {
+fn haversine_distance(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> u64 {
     const R: f64 = 6371.0; // Radius of the Earth in km
     let d_lat = (lat2 - lat1).to_radians();
     let d_lon = (lon2 - lon1).to_radians();
@@ -136,7 +141,7 @@ fn haversine_distance(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> u32 {
             * (d_lon / 2.0).sin()
             * (d_lon / 2.0).sin();
     let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
-    (R * c) as u32
+    (R * c) as u64
 }
 
 #[cfg(test)]
