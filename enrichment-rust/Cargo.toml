@@ -1,5 +1,5 @@
 [lib]
-name = "enrichment_rust"
+name = "enrichment_rust_lib"
 path = "src/lib.rs"
 
 [package]

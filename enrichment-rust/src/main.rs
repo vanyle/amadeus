@@ -1,8 +1,8 @@
 use std::fs;
 
-use enrichment_rust::currency_exchange;
-use enrichment_rust::enrich_json;
-use enrichment_rust::neobase;
+use enrichment_rust_lib::currency_exchange;
+use enrichment_rust_lib::enrich_json;
+use enrichment_rust_lib::neobase;
 
 fn main() {
     // Utils
