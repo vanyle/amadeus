@@ -12,7 +12,7 @@ pub struct EnrichedFlight {
     pub distance: u64,
     pub marketing_airline: String, // overriden (same value)
     pub operating_airline: String, // overriden
-    pub cabin: String, // overriden (same value)
+    pub cabin: String,             // overriden (same value)
 }
 
 impl EnrichedFlight {
@@ -24,7 +24,10 @@ impl EnrichedFlight {
             .get_round_distance_between_locations(&flight.dep_airport, &flight.arr_airport)
             .unwrap_or(0);
 
-        let operating_airline = flight.operating_airline.clone().unwrap_or(flight.marketing_airline.clone());
+        let operating_airline = flight
+            .operating_airline
+            .clone()
+            .unwrap_or(flight.marketing_airline.clone());
 
         EnrichedFlight {
             dep_city,

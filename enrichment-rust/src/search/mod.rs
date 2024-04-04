@@ -1,18 +1,17 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::{currency_exchange::Currency, serde_json_helpers::ymd_date_format_optional};
 use crate::serde_json_helpers::ymd_date_format;
+use crate::{currency_exchange::Currency, serde_json_helpers::ymd_date_format_optional};
 
 use self::{reco::Reco, typedefs::CityCode};
 
-pub mod typedefs;
-pub mod flight;
 pub mod enriched_flight;
-pub mod reco;
 pub mod enriched_reco;
 pub mod enriched_search;
-
+pub mod flight;
+pub mod reco;
+pub mod typedefs;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Search {

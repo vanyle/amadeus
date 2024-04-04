@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use std::fs::File;
 use csv::Reader;
 use serde::{Deserialize, Serialize};
-use strum_macros::EnumString;
+use std::collections::HashMap;
+use std::fs::File;
 use std::str::FromStr;
+use strum_macros::EnumString;
 
 #[derive(EnumString, Serialize, Deserialize, Clone, Copy, Hash, Eq, PartialEq, Debug)]
 pub enum Currency {

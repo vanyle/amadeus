@@ -1,3 +1,7 @@
+[lib]
+name = "enrichment_rust"
+path = "src/lib.rs"
+
 [package]
 name = "enrichment-rust"
 version = "0.1.0"

@@ -3,7 +3,9 @@ use std::str::FromStr;
 use serde::Serialize;
 use strum_macros::EnumString;
 
-use crate::{currency_exchange, neobase, serde_json_helpers::serialize_u64_optional_none_as_minus_one};
+use crate::{
+    currency_exchange, neobase, serde_json_helpers::serialize_u64_optional_none_as_minus_one,
+};
 
 use super::{enriched_reco::EnrichedReco, typedefs::CountryCode, Search};
 
@@ -23,7 +25,6 @@ impl ToString for TripType {
         }
     }
 }
-
 
 #[derive(EnumString, Serialize)]
 pub enum PassengerType {
@@ -62,12 +63,16 @@ pub struct EnrichedSearch {
 }
 
 impl EnrichedSearch {
-    pub fn enrich_from(search: &Search, neobase_locations: &neobase::Locations, exchange_rates: &currency_exchange::ExchangeRates) -> EnrichedSearch {
+    pub fn enrich_from(
+        search: &Search,
+        neobase_locations: &neobase::Locations,
+        exchange_rates: &currency_exchange::ExchangeRates,
+    ) -> EnrichedSearch {
         let advance_purchase = (search.request_dep_date - search.search_date).num_days() as u64;
 
-        let stay_duration = search.request_return_date.map(
-            |return_date| (return_date - search.request_dep_date).num_days() as u64
-        );
+        let stay_duration = search
+            .request_return_date
+            .map(|return_date| (return_date - search.request_dep_date).num_days() as u64);
 
         let trip_type = match &search.request_return_date {
             Some(_) => TripType::RoundTrip,
@@ -106,7 +111,14 @@ impl EnrichedSearch {
         let recos = search
             .recos
             .iter()
-            .map(|reco| EnrichedReco::enrich_from(reco, neobase_locations, &exchange_rates, &search.currency))
+            .map(|reco| {
+                EnrichedReco::enrich_from(
+                    reco,
+                    neobase_locations,
+                    &exchange_rates,
+                    &search.currency,
+                )
+            })
             .collect();
 
         return EnrichedSearch {

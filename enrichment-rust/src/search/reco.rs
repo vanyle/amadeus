@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use super::flight::Flight;
 use super::super::serde_json_helpers::deserialize_f64;
+use super::flight::Flight;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Reco {
