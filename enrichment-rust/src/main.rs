@@ -16,7 +16,8 @@ fn main() {
     .expect("Failed to parse sample.json");
 
     // Enrich
-    let output_json = enrich_json(input_json, &neobase_locations, &exchange_rates);
+    let output_json = enrich_json(input_json, &neobase_locations, &exchange_rates)
+        .expect("Failed to enrich json");
 
     // write to file
     fs::write(

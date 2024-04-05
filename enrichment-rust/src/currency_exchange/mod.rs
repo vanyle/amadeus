@@ -75,7 +75,10 @@ impl ExchangeRates {
             rates.insert(currency, rate);
         }
 
-        ExchangeRates { rates, _record_date: record_date }
+        ExchangeRates {
+            rates,
+            _record_date: record_date,
+        }
     }
 
     pub fn to_euros(&self, amount: f64, currency: &Currency) -> f64 {
