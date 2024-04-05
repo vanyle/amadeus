@@ -181,18 +181,21 @@ def group_and_decorate(recos_in):
         # advance purchase & stay duration & OW/RT
         search_date = datetime.strptime(search["search_date"], "%Y-%m-%d")
         request_dep_date = datetime.strptime(search["request_dep_date"], "%Y-%m-%d")
+
+        # This is the job of enrichement
+
         # approximate since the dep date is local to the origin city (whereas the search date is UTC)
-        search["advance_purchase"] = (request_dep_date - search_date).days
-        if search["request_return_date"] == "":
-            search["stay_duration"] = -1
-            search["trip_type"] = "OW"  # One Way trip
-        else:
-            request_return_date = datetime.strptime(
-                search["request_return_date"], "%Y-%m-%d"
-            )
-            # approximative since the return date is local to the destination city
-            search["stay_duration"] = (request_return_date - request_dep_date).days
-            search["trip_type"] = "RT"  # Round trip
+        # search["advance_purchase"] = (request_dep_date - search_date).days
+        # if search["request_return_date"] == "":
+        #    search["stay_duration"] = -1
+        #    search["trip_type"] = "OW"  # One Way trip
+        # else:
+        #    request_return_date = datetime.strptime(
+        #        search["request_return_date"], "%Y-%m-%d"
+        #    )
+        #    # approximative since the return date is local to the destination city
+        #    search["stay_duration"] = (request_return_date - request_dep_date).days
+        #   search["trip_type"] = "RT"  # Round trip
 
     except:
         return None
@@ -223,7 +226,7 @@ def make_search_more_realistic(search):
     search["request_dep_date"] = departure_date.strftime("%Y-%m-%d")
 
     if search["request_return_date"]:
-        return_date = departure_date + timedelta(days=search["stay_duration"])
+        return_date = departure_date + timedelta(days=random.randint(3, 15))  #
         search["request_return_date"] = return_date.strftime("%Y-%m-%d")
 
     for reco in search["recos"]:
@@ -237,7 +240,7 @@ def make_search_more_realistic(search):
 
 def process_search(search):
     if producer is not None:
-        producer.send("searches", json.dumps(search).encode("utf-8"))
+        producer.send("raw_recos", json.dumps(search).encode("utf-8"))
 
     if MSG_PER_SEC > 0:
         time.sleep(1 / MSG_PER_SEC)
