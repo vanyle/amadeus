@@ -34,6 +34,12 @@ pub fn merge_jsons(base: &mut Value, overwrite: Value) {
                 merge_jsons(a.entry(k).or_insert(Value::Null), v);
             }
         }
+        (a @ &mut Value::Array(_), Value::Array(b)) => {
+            let a = a.as_array_mut().unwrap();
+            for (i, v) in b.into_iter().enumerate() {
+                merge_jsons(a.get_mut(i).unwrap_or(&mut Value::Null), v);
+            }
+        }
         (a, b) => *a = b,
     }
 }
