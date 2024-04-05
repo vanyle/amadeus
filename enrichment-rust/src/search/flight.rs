@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::typedefs::AirportCode;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Flight {
     pub dep_airport: AirportCode,
     pub arr_airport: AirportCode,

@@ -1,7 +1,4 @@
-use std::str::FromStr;
-
-use serde::Serialize;
-use strum_macros::EnumString;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     currency_exchange, neobase, serde_json_helpers::serialize_u64_optional_none_as_minus_one,
@@ -13,25 +10,18 @@ extern crate strum_macros;
 
 #[derive(Serialize)]
 pub enum TripType {
+    #[serde(rename = "OW")]
     OneWay,
+    #[serde(rename = "RT")]
     RoundTrip,
 }
 
-impl ToString for TripType {
-    fn to_string(&self) -> String {
-        match self {
-            TripType::OneWay => "OW".to_string(),
-            TripType::RoundTrip => "RT".to_string(),
-        }
-    }
-}
-
-#[derive(EnumString, Serialize)]
+#[derive(Serialize, Deserialize)]
 pub enum PassengerType {
-    // Adult
-    ADT,
-    // Child
-    CH,
+    #[serde(rename = "ADT")]
+    Adult,
+    #[serde(rename = "CH")]
+    Child,
 }
 
 #[derive(Serialize)]
@@ -42,7 +32,9 @@ pub struct Passenger {
 
 #[derive(Serialize)]
 pub enum GeoType {
+    #[serde(rename = "D")]
     Domestic,
+    #[serde(rename = "I")]
     International,
 }
 
@@ -85,7 +77,10 @@ impl EnrichedSearch {
             .split(',')
             .map(|passenger_string| {
                 let mut iter = passenger_string.split('=');
-                let passenger_type = PassengerType::from_str(iter.next().unwrap()).unwrap();
+                let passenger_type_val = serde_json::to_value(iter.next().unwrap())
+                    .expect("Failed to parse passenger type string as value");
+                let passenger_type = serde_json::from_value(passenger_type_val)
+                    .expect("Failed to parse passenger type");
                 let passenger_nb = iter.next().unwrap().parse::<u64>().unwrap();
                 Passenger {
                     passenger_type,
@@ -115,13 +110,13 @@ impl EnrichedSearch {
                 EnrichedReco::enrich_from(
                     reco,
                     neobase_locations,
-                    &exchange_rates,
+                    exchange_rates,
                     &search.currency,
                 )
             })
             .collect();
 
-        return EnrichedSearch {
+        EnrichedSearch {
             recos,
             advance_purchase,
             stay_duration,
@@ -131,6 +126,6 @@ impl EnrichedSearch {
             destination_country,
             geo,
             ond_distance,
-        };
+        }
     }
 }

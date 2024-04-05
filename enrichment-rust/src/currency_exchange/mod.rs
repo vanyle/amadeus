@@ -46,7 +46,7 @@ type Rate = f64;
 
 pub struct ExchangeRates {
     rates: HashMap<Currency, Rate>,
-    record_date: String,
+    _record_date: String,
 }
 
 impl ExchangeRates {
@@ -75,7 +75,7 @@ impl ExchangeRates {
             rates.insert(currency, rate);
         }
 
-        ExchangeRates { rates, record_date }
+        ExchangeRates { rates, _record_date: record_date }
     }
 
     pub fn to_euros(&self, amount: f64, currency: &Currency) -> f64 {
@@ -84,6 +84,12 @@ impl ExchangeRates {
             // TODO: handle missing rates
             _ => amount / self.rates.get(currency).unwrap(),
         }
+    }
+}
+
+impl Default for ExchangeRates {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

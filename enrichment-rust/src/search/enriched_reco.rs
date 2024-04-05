@@ -27,9 +27,9 @@ impl EnrichedReco {
         exchange_rates: &currency_exchange::ExchangeRates,
         currency: &currency_exchange::Currency,
     ) -> EnrichedReco {
-        let price_eur = exchange_rates.to_euros(reco.price as f64, currency);
-        let taxes_eur = exchange_rates.to_euros(reco.taxes as f64, currency);
-        let fees_eur = exchange_rates.to_euros(reco.fees as f64, currency);
+        let price_eur = exchange_rates.to_euros(reco.price, currency);
+        let taxes_eur = exchange_rates.to_euros(reco.taxes, currency);
+        let fees_eur = exchange_rates.to_euros(reco.fees, currency);
 
         let flights: Vec<EnrichedFlight> = reco
             .flights
@@ -58,7 +58,7 @@ impl EnrichedReco {
             .cabin
             .clone();
 
-        return EnrichedReco {
+        EnrichedReco {
             flights,
             price_eur,
             taxes_eur,
@@ -67,6 +67,6 @@ impl EnrichedReco {
             main_marketing_airline,
             main_operating_airline,
             main_cabin,
-        };
+        }
     }
 }

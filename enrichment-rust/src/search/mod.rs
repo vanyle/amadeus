@@ -13,7 +13,7 @@ pub mod flight;
 pub mod reco;
 pub mod typedefs;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct Search {
     pub currency: Currency,
     #[serde(with = "ymd_date_format")]
