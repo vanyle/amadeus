@@ -65,14 +65,14 @@ Order of the fields is not guaranteed.
 {
     "OnD": "PAR-LIS",
     "OnD_distance": 1452,
-    "advance_purchase": 30,
+    "advance_purchase": 30,                     // Days between search_date and request_dep_date
     "currency": "RUB",
     "destination_city": "LIS",
     "destination_country": "PT",
-    "geo": "I",                         // I for international, D for domestic
+    "geo": "I",                                 // I for international, D for domestic
     "origin_city": "PAR",
     "origin_country": "FR",
-    "passengers": [                     // Array of passengers, translated from passengers_string
+    "passengers": [                             // Array of passengers, translated from passengers_string
         {
             "passenger_nb": 2,
             "passenger_type": "ADT"
@@ -82,7 +82,7 @@ Order of the fields is not guaranteed.
             "passenger_type": "CH"
         }
     ],
-    "passengers_string": "ADT=2,CH=3",  // Kept from input
+    "passengers_string": "ADT=2,CH=3",          // Kept from input
     "recos": [
         {
             "fees": "0.00",
@@ -106,8 +106,8 @@ Order of the fields is not guaranteed.
             ],
             "flown_distance": 3724,
             "main_cabin": "M",
-            "main_marketing_airline": "KL",
-            "main_operating_airline": "KL",
+            "main_marketing_airline": "KL",     // Airline with the most distance
+            "main_operating_airline": "KL",     // Airline with the most distance
             "nb_of_flights": 3,
             "price": "47925.36",
             "price_EUR": 578.72,
@@ -122,7 +122,7 @@ Order of the fields is not guaranteed.
     "search_id": "LRX-51980-1637149713-8763",
     "search_time": "11:48:39",
     "stay_duration": 2,
-    "trip_type": "RT",
+    "trip_type": "RT",                          // RT for round trip, OW for one way
     "version_nb": "1.0"
 }
 ```
