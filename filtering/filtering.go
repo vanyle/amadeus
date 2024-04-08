@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"math/rand"
+	"time"
+
 
 	kafka "github.com/segmentio/kafka-go"
 )
@@ -21,8 +24,10 @@ func SetupEnvVars() {
 }
 
 func ShouldSearchBeFilteredOut(s *Search) bool {
-	// TODO
-	return false
+	source := rand.NewSource(time.Now().UnixNano())
+	rng := rand.New(source)
+
+	return rng.Intn(100) >= 99
 }
 
 func FilterSearches(writer *kafka.Writer, search *Search, raw_search []byte) {
