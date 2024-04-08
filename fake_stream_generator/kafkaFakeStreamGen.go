@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/joho/godotenv"
 	kafka "github.com/segmentio/kafka-go"
 )
 
@@ -91,9 +92,13 @@ func SendSearch(conn *kafka.Conn, search *Search) {
 	}
 
 	if conn != nil {
-		conn.WriteMessages(
+		_, err := conn.WriteMessages(
 			kafka.Message{Value: msg},
 		)
+		if err != nil {
+			log.Println("Failed to write message")
+			log.Fatal(err)
+		}
 	}
 
 	if MSG_PER_SEC > 0 {
@@ -214,6 +219,11 @@ func DecodeLine(line []string) Reco {
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Printf("Not using a .env file")
+	}
+
 	fmt.Println("Starting stream...")
 	f, err := os.Open("./travel_data_sample.csv.gz")
 	if err != nil {
