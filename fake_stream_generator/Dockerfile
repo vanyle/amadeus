@@ -1,19 +1,13 @@
-FROM python:3.11.7-slim as python-base
+# syntax=docker/dockerfile:1
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-    # deps for installing poetry
-    curl \
-    git \
-    # deps for building python deps
-    build-essential
+FROM golang:1.22 as build
+COPY go.mod go.sum ./
+RUN go mod download
+COPY *.go ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o /fakestreamgen
 
-# Install poetry, our package manager
-RUN pip install poetry
-
-WORKDIR /app
-COPY poetry.lock pyproject.toml ./
-RUN poetry install --no-dev
-COPY . ./
-CMD [ "poetry", "run", "python", "kafkaFakeStreamer.py" ]
-
+FROM scratch
+WORKDIR /
+COPY --from=build /fakestreamgen /fakestreamgen
+COPY ./travel_data_sample.csv.gz /travel_data_sample.csv.gz
+CMD ["/fakestreamgen"]
