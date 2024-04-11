@@ -1,32 +1,27 @@
 #!/usr/bin/env python3
 
 """
-Tool to insert travel recommendations into DB
+Tool to flatten data before ingesting into db
 
 > python3 db-writer.py -h
 
 """
 
-import logging
 import argparse
-import datetime
-import sys
 import json
+import logging
 import time
-import os
-import psycopg2
 from collections import Counter
-from configparser import ConfigParser
-from confluent_kafka import Producer, Consumer, OFFSET_BEGINNING
+
+from confluent_kafka import OFFSET_BEGINNING, Consumer, Producer
 
 # Log init
 logging.basicConfig(
     format="%(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
     datefmt="%Y-%m-%d:%H:%M:%S",
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
 
 
 # Encoders
@@ -54,10 +49,11 @@ kafka_config = {
     "bootstrap.servers": "127.0.0.1:9092",
     "group.id": "maingroup",
     "auto.offset.reset": "earliest",  # 'auto.offset.reset=earliest' to start reading from the beginning of the topic if no committed offsets exist
+    "queue.buffering.max.messages": 10000000,  # 10M messages : dirty hack because of `BufferError: Local: Queue full`
 }
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Travel data enricher")
+    parser = argparse.ArgumentParser(description="Travel data flattener")
     parser.add_argument(
         "-f",
         "--format",
@@ -89,20 +85,34 @@ if __name__ == "__main__":
     consumer_topic = "enriched_recos"
     kafka_consumer.subscribe([consumer_topic], on_assign=reset_offset)
 
+    # Create Producer instance
+    kafka_producer = Producer(kafka_config)
+
+    # Optional per-message delivery callback (triggered by poll() or flush())
+    # when a message has been successfully delivered or permanently
+    # failed delivery (after retries).
+    def delivery_callback(err, msg):
+        if err:
+            logger.debug("ERROR: Message failed delivery: {}".format(err))
+        else:
+            logger.debug(
+                "Produced event to topic {topic}: key = {key:12} value = {value:12}".format(
+                    topic=msg.topic(),
+                    key=msg.key().decode("utf-8"),
+                    value=msg.value().decode("utf-8"),
+                )
+            )
+
+    topic_recos = "db_recos"
+    topic_searches = "db_searches"
+
     # Create encoder
     encoder = encoders[arguments.format]
 
     # Poll for new messages from Kafka and write them into DB
-    logger.info("Writing into DB")
+    logger.info("Flattening")
     cnt = Counter()
-
-    # Connect to an existing database
-    conn = psycopg2.connect(
-        dbname="postgres", user="postgres", password="password", host="127.0.0.1"
-    )
-
-    # Open a cursor to perform database operations
-    cur = conn.cursor()
+    # Poll for new messages from Kafka and split them
     try:
         while True:
             msg = kafka_consumer.poll(5.0)
@@ -110,7 +120,7 @@ if __name__ == "__main__":
                 # Initial message consumption may take up to
                 # `session.timeout.ms` for the kafka_consumer group to
                 # rebalance and start consuming
-                logger.debug("Waiting...")
+                logger.info("Waiting...")
             elif msg.error():
                 logger.debug("ERROR: %s".format(msg.error()))
             else:
@@ -121,55 +131,64 @@ if __name__ == "__main__":
                         value=msg.value().decode("utf-8"),
                     )
                 )
+
                 cnt["search_read"] += 1
                 search = json.loads(msg.value().decode("utf-8"))
-
-                # Pass data to fill a query placeholders and let Psycopg perform
-                # the correct conversion (no more SQL injections!)
-                cur.execute(
-                    "INSERT INTO searches (search_id, search_country, search_date, request_dep_date, advance_purchase, stay_duration, trip_type, ond) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                    (
-                        search["search_id"],
-                        search["search_country"],
-                        search["search_date"],
-                        search["request_dep_date"],
-                        search["advance_purchase"],
-                        search["stay_duration"],
-                        search["trip_type"],
-                        search["OnD"],
-                    ),
+                logger.debug(f"Flatten : %s" % encoder(search))
+                kafka_producer.produce(
+                    topic_searches,
+                    json.dumps(
+                        {
+                            key: search[key]
+                            for key in [
+                                "search_id",
+                                "search_country",
+                                "search_date",
+                                "request_dep_date",
+                                "advance_purchase",
+                                "stay_duration",
+                                "trip_type",
+                                "OnD",
+                            ]
+                        }
+                    ).encode("utf-8"),
+                    search["search_id"],
+                    callback=delivery_callback,
                 )
                 cnt["search_written"] += 1
                 for reco in search["recos"]:
                     cnt["recos_read"] += 1
-                    cur.execute(
-                        "INSERT INTO recos (search_id, nb_of_flights, price_EUR, main_marketing_airline, main_operating_airline) VALUES (%s, %s, %s, %s, %s)",
-                        (
-                            search["search_id"],
-                            reco["nb_of_flights"],
-                            reco["price_EUR"],
-                            reco["main_marketing_airline"],
-                            reco["main_operating_airline"],
-                        ),
+                    reco_dict = {
+                        key: reco[key]
+                        for key in [
+                            "nb_of_flights",
+                            "price_EUR",
+                            "main_marketing_airline",
+                            "main_operating_airline",
+                        ]
+                    }
+                    reco_dict["search_id"] = search["search_id"]
+                    kafka_producer.produce(
+                        topic_recos,
+                        json.dumps(reco_dict).encode("utf-8"),
+                        search["search_id"],
+                        callback=delivery_callback,
                     )
                     cnt["recos_written"] += 1
+                    if cnt["recos_read"] % 10000 == 0:
+                        # log every 10000 searches to show the script is alive
+                        logger.info(f"Running: %s" % cnt)
 
-                # Make the changes to the database persistent
-                conn.commit()
-
-                # encode and print
-                logger.info(f"Wrote search: %s" % encoder(search))
+                # Only needed so that delivery_callback is called
+                kafka_producer.poll(0)
 
     except KeyboardInterrupt:  # TODO : catch other exceptions
         pass
-    except KeyError:
-        logger.exception("Failed at writing search from: %s" % search)
     finally:
-        # Close communication with the database
-        cur.close()
-        conn.close()
         # Leave group and commit final offsets
         kafka_consumer.close()
+        # Block until the messages are sent.
+        kafka_producer.flush()
         # end time
         end = time.time()
 
