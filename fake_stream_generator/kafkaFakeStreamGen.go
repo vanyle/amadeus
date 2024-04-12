@@ -93,7 +93,7 @@ func SendSearch(conn *kafka.Conn, search *Search) {
 
 	if conn != nil {
 		_, err := conn.WriteMessages(
-			kafka.Message{Value: msg},
+			kafka.Message{Key: []byte(search.Search_id), Value: msg},
 		)
 		if err != nil {
 			log.Println("Failed to write message")
