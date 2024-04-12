@@ -97,7 +97,7 @@ func SendSearch(conn *kafka.Conn, search *Search) {
 		)
 		if err != nil {
 			log.Println("Failed to write message")
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 
