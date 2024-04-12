@@ -199,9 +199,6 @@ function App() {
       </Paper>
 
       <div className="w-[100%] flex flex-col">
-        <div className="text-xl text-left p-5">
-          Cheapest median price: {100}€
-        </div>
         <VictoryChart width={700} height={400} theme={VictoryTheme.material}>
           <VictoryLegend
             x={0}

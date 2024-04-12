@@ -50,25 +50,26 @@ app = FastAPI()
 
 @app.get("/")
 async def root(OnD: str, trip_type: str, search_date_min: str, search_date_max: str):
-    request = get_sql_request(OnD, trip_type, search_date_min, search_date_max)
+    try:
+        request = get_sql_request(OnD, trip_type, search_date_min, search_date_max)
 
-    curs.execute(request)
-    result = curs.fetchall()
-    print(result)
-    return [
-        {
-            "airline": row.airline,
-            "advance_purchase": row.advance_purchase,
-            "price": row._0,
-        }
-        for row in result
-    ]
+        curs.execute(request)
+        result = curs.fetchall()
+        print(result)
+        return [
+            {
+                "airline": row.airline,
+                "advance_purchase": row.advance_purchase,
+                "price": row._0,
+            }
+            for row in result
+        ]
+    except:
+        return []
 
 
 # We believe in security.
-origins = [
-    "*",
-]
+origins = ["*", "http://13.38.29.32/*"]
 
 app.add_middleware(
     CORSMiddleware,
