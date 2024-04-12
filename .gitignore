@@ -26,3 +26,4 @@ cover/
 travel_data_sample.csv.gz
 .terraform
 node_modules
+.vite
