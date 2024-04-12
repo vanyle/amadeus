@@ -37,8 +37,9 @@ const fetchData = async ({
   search_date_min,
 }: DataFetchParams) => {
   try {
+    let currentUrl = location.href;
     let request = await fetch(
-      `http://localhost:8000/?OnD=${OnD}&trip_type=${trip_type}&search_date_min=${search_date_min}&search_date_max=${search_date_max}`
+      `${currentUrl}?OnD=${OnD}&trip_type=${trip_type}&search_date_min=${search_date_min}&search_date_max=${search_date_max}`
     );
 
     return await request.json();
